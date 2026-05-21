@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Winlator Resolution Pack
 
 on:
   workflow_dispatch:
@@ -27,17 +27,20 @@ jobs:
           git submodule update --init --recursive
           git -C app lfs pull || true
 
-      - name: Patch duplicate native libs packaging
+      - name: Patch Winlator RP v1.0
         run: |
           python3 <<'PY'
           from pathlib import Path
           import re
 
           gradle = Path("app/app/build.gradle")
-          text = gradle.read_text(encoding="utf-8")
+          strings = Path("app/app/src/main/res/values/strings.xml")
+          arrays = Path("app/app/src/main/res/values/arrays.xml")
 
-          if "packagingOptions" not in text:
-              text = re.sub(
+          # Fix duplicate native libs during GitHub Actions build
+          gradle_text = gradle.read_text(encoding="utf-8")
+          if "packagingOptions" not in gradle_text:
+              gradle_text = re.sub(
                   r"(android\s*\{\s*)",
                   """\\1
               packagingOptions {
@@ -48,12 +51,194 @@ jobs:
               }
 
           """,
-                  text,
+                  gradle_text,
                   count=1
               )
+          gradle.write_text(gradle_text, encoding="utf-8")
 
-          gradle.write_text(text, encoding="utf-8")
+          # App name shown after install
+          strings_text = strings.read_text(encoding="utf-8")
+          strings_text = re.sub(
+              r'<string name="app_name">.*?</string>',
+              '<string name="app_name">Winlator RP</string>',
+              strings_text
+          )
+          strings.write_text(strings_text, encoding="utf-8")
+
+          # Resolution list
+          screen_size_entries = '''<string-array name="screen_size_entries">
+              <item>Custom</item>
+
+              <!-- 16:9 -->
+              <item>320x180 (16:9)</item>
+              <item>426x240 (16:9)</item>
+              <item>480x270 (16:9)</item>
+              <item>512x288 (16:9)</item>
+              <item>640x360 (16:9)</item>
+              <item>690x360 (16:9)</item>
+              <item>768x432 (16:9)</item>
+              <item>800x450 (16:9)</item>
+              <item>854x480 (16:9)</item>
+              <item>960x540 (16:9)</item>
+              <item>960x544 (16:9)</item>
+              <item>1024x576 (16:9)</item>
+              <item>1067x600 (16:9)</item>
+              <item>1152x648 (16:9)</item>
+              <item>1280x720 (16:9)</item>
+              <item>1366x768 (16:9)</item>
+              <item>1600x900 (16:9)</item>
+              <item>1920x1080 (16:9)</item>
+              <item>2560x1440 (16:9)</item>
+              <item>3840x2160 (16:9)</item>
+
+              <!-- 18:9 -->
+              <item>360x180 (18:9)</item>
+              <item>400x200 (18:9)</item>
+              <item>480x240 (18:9)</item>
+              <item>540x270 (18:9)</item>
+              <item>640x320 (18:9)</item>
+              <item>720x360 (18:9)</item>
+              <item>800x400 (18:9)</item>
+              <item>960x480 (18:9)</item>
+              <item>1080x540 (18:9)</item>
+              <item>1200x600 (18:9)</item>
+              <item>1280x640 (18:9)</item>
+              <item>1440x720 (18:9)</item>
+              <item>1600x800 (18:9)</item>
+              <item>1800x900 (18:9)</item>
+              <item>1920x960 (18:9)</item>
+              <item>2160x1080 (18:9)</item>
+
+              <!-- 20:9 -->
+              <item>320x144 (20:9)</item>
+              <item>360x162 (20:9)</item>
+              <item>400x180 (20:9)</item>
+              <item>480x216 (20:9)</item>
+              <item>540x243 (20:9)</item>
+              <item>560x252 (20:9)</item>
+              <item>600x270 (20:9)</item>
+              <item>640x288 (20:9)</item>
+              <item>720x324 (20:9)</item>
+              <item>800x360 (20:9)</item>
+              <item>854x384 (20:9)</item>
+              <item>880x396 (20:9)</item>
+              <item>960x432 (20:9)</item>
+              <item>1024x460 (20:9)</item>
+              <item>1040x468 (20:9)</item>
+              <item>1067x480 (20:9)</item>
+              <item>1120x504 (20:9)</item>
+              <item>1138x512 (20:9)</item>
+              <item>1200x540 (20:9)</item>
+              <item>1280x576 (20:9)</item>
+              <item>1333x600 (20:9)</item>
+              <item>1360x612 (20:9)</item>
+              <item>1422x640 (20:9)</item>
+              <item>1440x648 (20:9)</item>
+              <item>1520x684 (20:9)</item>
+              <item>1600x720 (20:9)</item>
+              <item>1680x756 (20:9)</item>
+              <item>1707x768 (20:9)</item>
+              <item>1760x792 (20:9)</item>
+              <item>1778x800 (20:9)</item>
+              <item>1840x828 (20:9)</item>
+              <item>1920x864 (20:9)</item>
+              <item>2400x1080 (20:9)</item>
+              <item>3200x1440 (20:9)</item>
+              <item>4800x2160 (20:9)</item>
+
+              <!-- 21:9 -->
+              <item>420x180 (21:9)</item>
+              <item>560x240 (21:9)</item>
+              <item>640x274 (21:9)</item>
+              <item>840x360 (21:9)</item>
+              <item>960x412 (21:9)</item>
+              <item>1120x480 (21:9)</item>
+              <item>1280x548 (21:9)</item>
+              <item>1440x617 (21:9)</item>
+              <item>1680x720 (21:9)</item>
+              <item>1920x823 (21:9)</item>
+
+              <!-- 4:3 -->
+              <item>320x240 (4:3)</item>
+              <item>360x270 (4:3)</item>
+              <item>400x300 (4:3)</item>
+              <item>480x360 (4:3)</item>
+              <item>512x384 (4:3)</item>
+              <item>640x480 (4:3)</item>
+              <item>800x600 (4:3)</item>
+              <item>960x720 (4:3)</item>
+              <item>1024x768 (4:3)</item>
+              <item>1152x864 (4:3)</item>
+              <item>1280x960 (4:3)</item>
+              <item>1400x1050 (4:3)</item>
+              <item>1600x1200 (4:3)</item>
+              <item>1920x1440 (4:3)</item>
+
+              <!-- 19.5:9 -->
+              <item>390x180 (19.5:9)</item>
+              <item>520x240 (19.5:9)</item>
+              <item>650x300 (19.5:9)</item>
+              <item>780x360 (19.5:9)</item>
+              <item>910x420 (19.5:9)</item>
+              <item>1040x480 (19.5:9)</item>
+              <item>1170x540 (19.5:9)</item>
+              <item>1300x600 (19.5:9)</item>
+              <item>1430x660 (19.5:9)</item>
+              <item>1560x720 (19.5:9)</item>
+              <item>1690x780 (19.5:9)</item>
+              <item>1820x840 (19.5:9)</item>
+              <item>2340x1080 (19.5:9)</item>
+
+              <!-- 16:10 -->
+              <item>320x200 (16:10)</item>
+              <item>480x300 (16:10)</item>
+              <item>640x400 (16:10)</item>
+              <item>768x480 (16:10)</item>
+              <item>800x500 (16:10)</item>
+              <item>960x600 (16:10)</item>
+              <item>1024x640 (16:10)</item>
+              <item>1152x720 (16:10)</item>
+              <item>1280x800 (16:10)</item>
+              <item>1440x900 (16:10)</item>
+              <item>1600x1050 (16:10)</item>
+              <item>1680x1050 (16:10)</item>
+              <item>1920x1200 (16:10)</item>
+
+              <!-- 5:4 -->
+              <item>640x512 (5:4)</item>
+              <item>720x576 (5:4)</item>
+              <item>800x640 (5:4)</item>
+              <item>960x768 (5:4)</item>
+              <item>1024x819 (5:4)</item>
+              <item>1280x1024 (5:4)</item>
+              <item>1600x1280 (5:4)</item>
+
+              <!-- 3:2 -->
+              <item>480x320 (3:2)</item>
+              <item>600x400 (3:2)</item>
+              <item>720x480 (3:2)</item>
+              <item>960x640 (3:2)</item>
+              <item>1200x800 (3:2)</item>
+              <item>1440x960 (3:2)</item>
+              <item>1680x1120 (3:2)</item>
+              <item>1800x1200 (3:2)</item>
+          </string-array>'''
+
+          arrays_text = arrays.read_text(encoding="utf-8")
+          arrays_text = re.sub(
+              r'<string-array\s+name="screen_size_entries"[^>]*>.*?</string-array>',
+              screen_size_entries,
+              arrays_text,
+              flags=re.S
+          )
+          arrays.write_text(arrays_text, encoding="utf-8")
           PY
+
+      - name: Show patched files
+        run: |
+          grep -R "Winlator RP" -n app/app/src/main/res/values/strings.xml || true
+          grep -R "4800x2160" -n app/app/src/main/res/values/arrays.xml || true
+          grep -R "packagingOptions" -n app/app/build.gradle || true
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -84,5 +269,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Winlator-RP-Base
+          name: Winlator-Resolution-Pack-v1.0
           path: release/Winlator-Resolution-Pack-v1.0.apk
