@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
+    packagingOptions {
+        pickFirst 'lib/arm64-v8a/*.so'
+        pickFirst 'lib/armeabi-v7a/*.so'
+        pickFirst 'lib/x86/*.so'
+        pickFirst 'lib/x86_64/*.so'
+    }
     compileSdk 34
 
     defaultConfig {
